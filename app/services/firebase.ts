@@ -20,6 +20,7 @@ function toFeed(id: string, d: Record<string, unknown>): Feed {
     byName: (d.byName as string) ?? null,
     created: d.created as string | undefined,
     edited: d.edited as string | undefined,
+    editedBy: (d.editedBy as string) ?? null,
   }
 }
 

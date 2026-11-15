@@ -65,10 +65,11 @@ export function useFeedLog() {
   }
 
   async function updateFeed(existing: Feed, input: FeedInput) {
-    await $backend.saveFeed({ ...existing, ...input, edited: new Date().toISOString() })
+    const stamp = { edited: new Date().toISOString(), editedBy: user.value?.name ?? null }
+    await $backend.saveFeed({ ...existing, ...input, ...stamp })
     // Edited an old (non-live) entry: reflect it locally.
     if (input.at < live || existing.at < live) {
-      olderFeeds.value = olderFeeds.value.map(f => (f.id === existing.id ? { ...existing, ...input } : f)).filter(f => f.at < live)
+      olderFeeds.value = olderFeeds.value.map(f => (f.id === existing.id ? { ...existing, ...input, ...stamp } : f)).filter(f => f.at < live)
     }
   }
 

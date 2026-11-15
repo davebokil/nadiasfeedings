@@ -8,6 +8,7 @@ export interface Feed {
   byName?: string | null
   created?: string
   edited?: string
+  editedBy?: string | null
 }
 
 export interface Baby {

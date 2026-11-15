@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analyze, paceOf } from '../app/utils/analytics'
+import { analyze, paceOf, UNATTRIBUTED, usageOf } from '../app/utils/analytics'
 import { guideFor, verdictFor } from '../app/utils/guidelines'
 import { fmtOz, fmtTime } from '../app/utils/time'
 import type { Feed } from '../app/utils/types'
@@ -74,5 +74,56 @@ describe('format', () => {
     expect(fmtTime(13 * 60 + 45)).toBe('1:45pm')
     expect(fmtOz(3.2)).toBe('3.2')
     expect(fmtOz(3)).toBe('3')
+  })
+})
+
+describe('usageOf', () => {
+  // Synthetic: Nov 1–15. Alex logs mornings, Sam logs 2am feeds, and Nov 1–3 are unattributed (imported).
+  const now = new Date(2026, 10, 15, 14, 30)
+  const log: Feed[] = []
+  for (let d = 1; d <= 15; d++) {
+    const day = `2026-11-${String(d).padStart(2, '0')}`
+    const imported = d <= 3
+    log.push({ id: `${day}a`, at: `${day}T02:00`, oz: 3, formula: false, note: '', byName: imported ? null : 'Sam', created: `${day}T07:05:00.000Z` })
+    log.push({ id: `${day}b`, at: `${day}T09:00`, oz: 2, formula: false, note: '', byName: imported ? null : 'Alex', created: `${day}T14:05:00.000Z` })
+  }
+  // Alex fixes one of Sam's entries today.
+  log[log.length - 2] = { ...log[log.length - 2]!, oz: 3.5, edited: '2026-11-15T15:00:00.000Z', editedBy: 'Alex' }
+
+  it('counts the last 7 days by logger, with share and overnight feeds', () => {
+    const u = usageOf(log, now, 'week')
+    expect(u.since).toBe('2026-11-09')
+    expect(u.total).toBe(14)
+    const sam = u.people.find(p => p.name === 'Sam')!
+    const alex = u.people.find(p => p.name === 'Alex')!
+    expect(sam.feeds).toBe(7)
+    expect(sam.oz).toBe(6 * 3 + 3.5)
+    expect(sam.overnight).toBe(7)
+    expect(sam.share).toBeCloseTo(0.5)
+    expect(alex.overnight).toBe(0)
+    expect(alex.edits).toBe(1)
+    expect(alex.lastAt).toBe('2026-11-15T09:00')
+    expect(u.people.some(p => p.name === UNATTRIBUTED)).toBe(false)
+  })
+
+  it('puts unattributed feeds in their own bucket, listed last, for all time', () => {
+    const u = usageOf(log, now, 'all')
+    expect(u.total).toBe(30)
+    expect(u.people.map(p => p.name)).toEqual(['Alex', 'Sam', UNATTRIBUTED])
+    expect(u.people[2]!.feeds).toBe(6)
+    expect(u.people[2]!.attributed).toBe(false)
+  })
+
+  it('lists recent activity newest first, including edits', () => {
+    const u = usageOf(log, now, 'week', 3)
+    expect(u.recent.map(r => `${r.kind}:${r.who}`)).toEqual(['edited:Alex', 'added:Alex', 'added:Sam'])
+    expect(u.recent[0]!.feedAt).toBe('2026-11-15T02:00')
+  })
+
+  it('handles an empty log', () => {
+    const u = usageOf([], now)
+    expect(u.total).toBe(0)
+    expect(u.people).toEqual([])
+    expect(u.recent).toEqual([])
   })
 })

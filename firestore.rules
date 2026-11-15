@@ -15,7 +15,7 @@ service cloud.firestore {
     }
 
     function validFeed(d) {
-      return d.keys().hasOnly(['at', 'oz', 'formula', 'note', 'byName', 'created', 'edited'])
+      return d.keys().hasOnly(['at', 'oz', 'formula', 'note', 'byName', 'created', 'edited', 'editedBy'])
         && d.at is string && d.at.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$')
         && d.oz is number && d.oz > 0 && d.oz <= 16
         && d.formula is bool

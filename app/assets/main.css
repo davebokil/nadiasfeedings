@@ -117,3 +117,25 @@ input[type=datetime-local],input[type=text]{width:100%;font:inherit;font-size:16
 .signin button{margin-top:14px;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:800;font-size:16px;padding:14px 22px;border-radius:14px;cursor:pointer}
 .more{display:block;width:100%;border:1px dashed var(--line);background:transparent;color:var(--ink2);font:inherit;font-weight:800;padding:12px;border-radius:14px;cursor:pointer;margin-top:4px}
 .demo{background:var(--accent-soft);color:var(--ink);padding:10px 14px;border-radius:14px;font-size:13px;font-weight:700;margin-bottom:12px}
+
+/* Usage tab */
+.usageHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.usageHead h2{margin:0}
+.seg{display:flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}
+.seg button{border:0;background:transparent;color:var(--ink2);font:inherit;font-weight:700;font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer;min-height:36px}
+.seg button.on{background:var(--accent-soft);color:var(--ink)}
+.usr{padding:12px 0;border-top:1px solid var(--line)}
+.usr:first-of-type{border-top:0}
+.usr .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.usr .name{font-weight:800;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.usr .nums{font-weight:700;font-size:14px;color:var(--ink2);white-space:nowrap}
+.usr .bar{height:8px;background:var(--band);border-radius:4px;margin:7px 0 6px;overflow:hidden}
+.usr .bar div{height:100%;background:var(--accent);border-radius:4px}
+.usr.off .name{color:var(--ink2)}
+.usr.off .bar div{background:var(--ink3)}
+.usr .meta{font-size:13px;color:var(--ink3);font-weight:600;line-height:1.4}
+.act{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.act:first-of-type{border-top:0}
+.act .what{min-width:0}
+.act .what span{color:var(--ink3);font-size:13px}
+.act .when{color:var(--ink3);font-size:12px;font-weight:700;white-space:nowrap}

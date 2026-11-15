@@ -30,10 +30,12 @@ const db = getFirestore()
 
 for (let i = 0; i < feeds.length; i += 400) {
   const batch = db.batch()
-  for (const { id, at, oz, formula, note } of feeds.slice(i, i + 400)) {
+  for (const { id, at, oz, formula, note, byName, created, edited, editedBy } of feeds.slice(i, i + 400)) {
+    // Keep who-logged-what when restoring a backup; the original export has none (shown as "Imported").
     batch.set(db.collection('feeds').doc(id), {
       at, oz, formula: !!formula, note: note ?? '',
-      byName: null, created: data.exportedAt ?? new Date().toISOString(),
+      byName: byName ?? null, created: created ?? data.exportedAt ?? new Date().toISOString(),
+      ...(edited ? { edited, editedBy: editedBy ?? null } : {}),
     })
   }
   await batch.commit()

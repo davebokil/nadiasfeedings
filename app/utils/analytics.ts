@@ -1,5 +1,5 @@
 import type { Baby, Feed } from './types'
-import { absMinutes, dayOf, fmtDuration, fmtOz, fmtTime, localStamp, minuteOf, minutesOfDay, toDate } from './time'
+import { absMinutes, addDays, dayOf, fmtDuration, fmtOz, fmtTime, localStamp, minuteOf, minutesOfDay, toDate } from './time'
 import { guideFor } from './guidelines'
 
 const sum = (a: number[]) => a.reduce((s, x) => s + x, 0)
@@ -199,4 +199,79 @@ export function tipsFor(a: Analysis, baby: Baby, now: Date): Tip[] {
   const big = [...a.blocks].sort((x, y) => y.perFeed - x.perFeed)[0]
   if (big && big.perFeed) tips.push({ icon: '🔎', html: `Her biggest bottles tend to come <b>${big.name.toLowerCase()}</b> (${big.range}) — about ${fmtOz(big.perFeed)} oz per feed.` })
   return tips
+}
+
+// ── Usage: who logs what ────────────────────────────────────────────────────────────────────────
+
+/** Label for feeds with no recorded logger (e.g. imported from the prototype). */
+export const UNATTRIBUTED = 'Imported'
+/** Overnight window (minutes of day) for the "3am shift" count. */
+export const OVERNIGHT_END_MIN = 6 * 60
+
+export type UsagePeriod = 'week' | 'all'
+
+export interface PersonUsage {
+  name: string
+  attributed: boolean
+  feeds: number
+  oz: number
+  share: number // 0–1 share of feeds in the period
+  overnight: number // feeds between 12am and 6am
+  edits: number // other entries this person edited (any period)
+  lastAt: string | null // most recent feed time they logged
+}
+
+export interface Activity {
+  kind: 'added' | 'edited'
+  who: string
+  when: string // ISO timestamp of the action (a real instant, not a feed time)
+  feedAt: string // the feed's wall-clock time
+  oz: number
+}
+
+export interface Usage {
+  period: UsagePeriod
+  since: string | null // first day included (YYYY-MM-DD), null for all time
+  total: number
+  people: PersonUsage[]
+  recent: Activity[]
+}
+
+/** Who logged which feeds, by `byName`. "week" = today plus the 6 days before (by feed time). */
+export function usageOf(feeds: Feed[], now: Date, period: UsagePeriod = 'week', recentLimit = 15): Usage {
+  const today = localStamp(now).slice(0, 10)
+  const since = period === 'week' ? addDays(today, -6) : null
+  const inPeriod = feeds.filter(f => f.at && (!since || dayOf(f.at) >= since))
+
+  const people = new Map<string, PersonUsage>()
+  const person = (name: string, attributed: boolean) => {
+    if (!people.has(name)) people.set(name, { name, attributed, feeds: 0, oz: 0, share: 0, overnight: 0, edits: 0, lastAt: null })
+    return people.get(name)!
+  }
+  for (const f of inPeriod) {
+    const p = f.byName ? person(f.byName, true) : person(UNATTRIBUTED, false)
+    p.feeds++
+    p.oz += f.oz
+    if (minuteOf(f.at) < OVERNIGHT_END_MIN) p.overnight++
+    if (!p.lastAt || f.at > p.lastAt) p.lastAt = f.at
+  }
+  for (const f of feeds) {
+    if (!f.editedBy || !f.edited) continue
+    // `edited` is a real instant (ISO, UTC); compare its local calendar day.
+    if (since && localStamp(new Date(f.edited)).slice(0, 10) < since) continue
+    person(f.editedBy, true).edits++
+  }
+  const total = inPeriod.length
+  for (const p of people.values()) p.share = total ? p.feeds / total : 0
+  // Real people first (most feeds first), the unattributed bucket last.
+  const sortedPeople = [...people.values()].sort((a, b) => Number(b.attributed) - Number(a.attributed) || b.feeds - a.feeds || a.name.localeCompare(b.name))
+
+  const recent: Activity[] = []
+  for (const f of feeds) {
+    if (f.byName && f.created) recent.push({ kind: 'added', who: f.byName, when: f.created, feedAt: f.at, oz: f.oz })
+    if (f.editedBy && f.edited) recent.push({ kind: 'edited', who: f.editedBy, when: f.edited, feedAt: f.at, oz: f.oz })
+  }
+  recent.sort((a, b) => (a.when < b.when ? 1 : a.when > b.when ? -1 : 0))
+
+  return { period, since, total, people: sortedPeople, recent: recent.slice(0, recentLimit) }
 }

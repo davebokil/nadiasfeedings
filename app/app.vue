@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { Feed } from '~/utils/types'
 
-type Tab = 'today' | 'history' | 'trends'
+type Tab = 'today' | 'history' | 'trends' | 'usage'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'today', label: 'Today' },
   { id: 'history', label: 'History' },
   { id: 'trends', label: 'Trends' },
+  { id: 'usage', label: 'Usage' },
 ]
 
 const log = useFeedLog()
@@ -63,7 +64,8 @@ function openEdit(f: Feed) { editing.value = f; sheetOpen.value = true }
       <main>
         <TodayView v-if="tab === 'today'" :a="analysis" :baby="log.baby.value" :now="now" @edit="openEdit" />
         <HistoryView v-else-if="tab === 'history'" :a="analysis" @edit="openEdit" />
-        <TrendsView v-else :a="analysis" :baby="log.baby.value" :now="now" />
+        <TrendsView v-else-if="tab === 'trends'" :a="analysis" :baby="log.baby.value" :now="now" />
+        <UsageView v-else :feeds="log.feeds.value" :now="now" />
       </main>
       <div class="foot">
         Averages use the last 7 full days. Every baby varies day to day — if intake drops for several days or
