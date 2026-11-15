@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Only the Google accounts listed here can read or write the log.
+// The real list comes from ALLOWED_EMAILS in .env: `npm run deploy:rules` fills in the placeholder,
+// writes the git-ignored firestore.deploy.rules, and deploys that. Never put real emails in this file.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function family() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          '__ALLOWED_EMAILS__'
+        ];
+    }
+
+    function validFeed(d) {
+      return d.keys().hasOnly(['at', 'oz', 'formula', 'note', 'byName', 'created', 'edited'])
+        && d.at is string && d.at.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$')
+        && d.oz is number && d.oz > 0 && d.oz <= 16
+        && d.formula is bool
+        && d.note is string && d.note.size() <= 200;
+    }
+
+    function validBaby(d) {
+      return d.keys().hasOnly(['name', 'birth', 'weightLb', 'weighedOn'])
+        && d.birth is string && d.name is string
+        && (d.weightLb == null || (d.weightLb is number && d.weightLb > 0 && d.weightLb < 60));
+    }
+
+    match /feeds/{feedId} {
+      allow read, delete: if family();
+      allow create, update: if family() && validFeed(request.resource.data);
+    }
+
+    match /meta/baby {
+      allow read: if family();
+      allow write: if family() && validBaby(request.resource.data);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

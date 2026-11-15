@@ -1,0 +1,27 @@
+{
+  "name": "nadia-feeds",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt generate",
+    "preview": "nuxt preview",
+    "test": "vitest run",
+    "postinstall": "nuxt prepare",
+    "import-data": "node scripts/import.mjs",
+    "backup": "node scripts/backup.mjs",
+    "build:rules": "node scripts/build-rules.mjs",
+    "deploy:rules": "node scripts/build-rules.mjs && npx firebase-tools deploy --only firestore:rules"
+  },
+  "dependencies": {
+    "firebase": "^13.3.0",
+    "nuxt": "^4.6.4",
+    "vue": "latest"
+  },
+  "devDependencies": {
+    "firebase-admin": "^14.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "latest",
+    "vue-tsc": "^3.3.14"
+  }
+}
