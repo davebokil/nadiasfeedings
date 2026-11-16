@@ -4,6 +4,9 @@ export interface AppUser { uid: string; name: string; email: string; photo?: str
 
 export type Unsub = () => void
 
+/** A browser Web Push subscription, as stored in pushSubs/{id}. */
+export interface PushSub { endpoint: string; keys: { p256dh: string; auth: string } }
+
 /** Everything the UI needs from storage. Firebase implements it; demo mode fakes it locally. */
 export interface Backend {
   kind: 'firebase' | 'demo'
@@ -18,4 +21,7 @@ export interface Backend {
   deleteFeed(id: string): Promise<void>
   watchBaby(next: (b: Partial<Baby> | null) => void): Unsub
   saveBaby(b: Baby): Promise<void>
+  /** Register this device for "new feeding" notifications (id is derived from the endpoint). */
+  savePushSub(id: string, sub: PushSub, user: AppUser): Promise<void>
+  deletePushSub(id: string): Promise<void>
 }

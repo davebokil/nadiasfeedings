@@ -38,6 +38,22 @@ service cloud.firestore {
       allow write: if family() && validBaby(request.resource.data);
     }
 
+    // One doc per device that turned on notifications. Only the Cloud Function reads these.
+    function validPushSub(d) {
+      return d.keys().hasOnly(['uid', 'name', 'endpoint', 'keys', 'created'])
+        && d.uid == request.auth.uid
+        && d.name is string && d.name.size() <= 100
+        && d.endpoint is string && d.endpoint.matches('^https://.*') && d.endpoint.size() <= 1000
+        && d.keys is map && d.keys.keys().hasOnly(['p256dh', 'auth'])
+        && d.keys.p256dh is string && d.keys.auth is string
+        && d.created is string;
+    }
+
+    match /pushSubs/{subId} {
+      allow create, update: if family() && validPushSub(request.resource.data);
+      allow delete: if family();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

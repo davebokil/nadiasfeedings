@@ -31,6 +31,9 @@ export default defineNuxtConfig({
       firebaseAuthDomain: '',
       firebaseProjectId: '',
       firebaseAppId: '',
+      // Web Push public key (NUXT_PUBLIC_VAPID_PUBLIC_KEY). Public by design; the private half is a
+      // Cloud Functions secret. Empty = the notifications bell is hidden.
+      vapidPublicKey: '',
     },
   },
 })

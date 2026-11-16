@@ -112,6 +112,9 @@ input[type=datetime-local],input[type=text]{width:100%;font:inherit;font-size:16
 [hidden]{display:none!important}
 
 .userbtn{border:1px solid var(--line);background:var(--card);color:var(--ink2);font:inherit;font-weight:700;font-size:13px;padding:7px 11px;border-radius:999px;cursor:pointer}
+.headBtns{display:flex;gap:8px;align-items:center}
+.userbtn.bell{min-width:44px;min-height:36px;font-size:16px;padding:6px 10px}
+.userbtn.bell.on{background:var(--accent-soft);border-color:transparent}
 .signin{text-align:center;padding:40px 18px}
 .signin p{color:var(--ink2);line-height:1.5}
 .signin button{margin-top:14px;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:800;font-size:16px;padding:14px 22px;border-radius:14px;cursor:pointer}

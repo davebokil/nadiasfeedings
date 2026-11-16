@@ -11,7 +11,8 @@
     "import-data": "node scripts/import.mjs",
     "backup": "node scripts/backup.mjs",
     "build:rules": "node scripts/build-rules.mjs",
-    "deploy:rules": "node scripts/build-rules.mjs && npx firebase-tools deploy --only firestore:rules"
+    "deploy:rules": "node scripts/build-rules.mjs && npx firebase-tools deploy --only firestore:rules",
+    "deploy:functions": "npm --prefix functions ci && npx firebase-tools deploy --only functions"
   },
   "dependencies": {
     "firebase": "^13.3.0",

@@ -11,7 +11,23 @@ const TABS: { id: Tab; label: string }[] = [
 
 const log = useFeedLog()
 const now = useNow()
-const { message } = useToast()
+const { message, toast } = useToast()
+const push = usePush()
+
+async function togglePush() {
+  const pushState = (): string => push.state.value // re-read after await (defeats TS narrowing)
+  try {
+    if (pushState() === 'on') { await push.disable(); toast('Notifications off') }
+    else { await push.enable(); if (pushState() === 'on') toast('Notifications on') }
+  } catch { toast("Couldn't change notifications") }
+  if (pushState() === 'denied') toast('Notifications are blocked — allow them in iPhone Settings → Notifications')
+}
+
+async function signOut() {
+  // Stop this phone getting the other parent's notifications once nobody's signed in.
+  if (push.state.value === 'on') await push.disable().catch(() => {})
+  await log.signOut()
+}
 
 const tab = ref<Tab>('today')
 function readHash() {
@@ -46,7 +62,15 @@ function openEdit(f: Feed) { editing.value = f; sheetOpen.value = true }
         <h1>{{ log.baby.value.name }}'s Feedings <span>🍼</span></h1>
         <div class="sub">{{ subtitle }}</div>
       </div>
-      <button v-if="log.user.value && log.backendKind === 'firebase'" class="userbtn" @click="log.signOut()">Sign out</button>
+      <div v-if="log.user.value && log.backendKind === 'firebase'" class="headBtns">
+        <button
+          v-if="push.state.value !== 'unsupported' && push.state.value !== 'loading'"
+          class="userbtn bell" :class="{ on: push.state.value === 'on' }" :disabled="push.busy.value"
+          :aria-label="push.state.value === 'on' ? 'Turn off feeding notifications' : 'Turn on feeding notifications'"
+          @click="togglePush"
+        >{{ push.state.value === 'on' ? '🔔' : '🔕' }}</button>
+        <button class="userbtn" @click="signOut">Sign out</button>
+      </div>
     </header>
 
     <div v-if="log.backendKind === 'demo'" class="demo">

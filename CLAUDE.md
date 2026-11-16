@@ -23,7 +23,7 @@ Firestore, deployed to GitHub Pages by `.github/workflows/deploy.yml`. See READM
 - Styling: plain CSS in `app/assets/main.css` with CSS variables for light/dark.
 
 ## Data & security
-- Collections: `feeds/{id}`, `meta/baby`. Field shapes are enforced in `firestore.rules`
+- Collections: `feeds/{id}`, `meta/baby`, `pushSubs/{id}` (one per device with notifications on; read only by `functions/index.js`, which pushes on every new feed). Field shapes are enforced in `firestore.rules`
   (`validFeed`, `validBaby`) — if you add a field, update the rules' `hasOnly` list too, then
   `npm run deploy:rules`, or writes will be rejected with `permission-denied`.
 - Access is an email allowlist: `ALLOWED_EMAILS` in `.env` is filled into the `__ALLOWED_EMAILS__` placeholder

@@ -94,6 +94,19 @@ you switch, or add any stragglers by hand in the new one.
 
 ---
 
+### 6. Feeding notifications (optional)
+
+When someone logs a feed, everyone else who turned on notifications gets a push like
+"Sam added a feeding for Nadia, 1.5oz at 3pm". The sender is `functions/index.js`, a Cloud Function,
+so the Firebase project has to be on the **Blaze** (pay-as-you-go) plan. At this volume it stays within the free quota.
+
+1. `npx web-push generate-vapid-keys` (run it once and keep the private key somewhere safe).
+2. `npx firebase-tools functions:secrets:set VAPID_PRIVATE_KEY` and paste the private key.
+3. `npm run deploy:functions`. The first deploy asks for `VAPID_PUBLIC_KEY` (the public key) and
+   `VAPID_SUBJECT` (your app URL, `https://<user>.github.io/<repo>/`) and saves them to the git-ignored `functions/.env.<project>`.
+4. Add a GitHub Actions variable `VAPID_PUBLIC_KEY` (the public key) and re-run the deploy workflow.
+5. On each phone: open the app **from the home-screen icon** (iOS 16.4+), tap 🔕 in the header, and allow notifications.
+
 ## Everyday
 
 | Task | Command |

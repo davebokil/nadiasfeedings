@@ -9,6 +9,7 @@ import type { Baby, Feed } from '~/utils/types'
 
 const FEEDS = 'feeds'
 const BABY_DOC = ['meta', 'baby'] as const
+const PUSH_SUBS = 'pushSubs'
 
 function toFeed(id: string, d: Record<string, unknown>): Feed {
   return {
@@ -67,5 +68,10 @@ export function createFirebaseBackend(config: FirebaseOptions): Backend {
       return onSnapshot(doc(db, ...BABY_DOC), s => next(s.exists() ? (s.data() as Partial<Baby>) : null), () => next(null))
     },
     saveBaby: b => setDoc(doc(db, ...BABY_DOC), b),
+    savePushSub: (id, sub, u) => setDoc(doc(db, PUSH_SUBS, id), {
+      uid: u.uid, name: u.name, endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+      created: new Date().toISOString(),
+    }),
+    deletePushSub: id => deleteDoc(doc(db, PUSH_SUBS, id)),
   }
 }

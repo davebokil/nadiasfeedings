@@ -41,5 +41,7 @@ export function createDemoBackend(baseURL: string): Backend {
       return () => babySubs.delete(fire)
     },
     async saveBaby(b) { baby = b; babySubs.forEach(fn => fn()) },
+    async savePushSub() {},
+    async deletePushSub() {},
   }
 }
